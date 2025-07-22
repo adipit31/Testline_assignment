@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import fitz  
 import json
 import os
 import re
@@ -22,7 +22,7 @@ def extract_pdf_content(pdf_path, output_dir="extracted_images"):
         # Extract text
         text = page.get_text("text").strip()
 
-        # Extract images, skipping the first one (watermark)
+        # Extract images
         image_list = page.get_images(full=True)
         image_paths = []
         for img_index, img in enumerate(image_list[1:], start=1):  # Skip first image
@@ -60,7 +60,7 @@ def extract_pdf_content(pdf_path, output_dir="extracted_images"):
         json.dump(content, json_file, indent=4, ensure_ascii=False)
 
     return json_output_path
-
+# For selecting pdf
 def select_pdf_file():
  
     root = Tk()
@@ -70,7 +70,7 @@ def select_pdf_file():
         filetypes=[("PDF files", "*.pdf")]
     )
     return file_path
-
+# For saving extracted data
 def process_pdf():
    
     pdf_path = select_pdf_file()
