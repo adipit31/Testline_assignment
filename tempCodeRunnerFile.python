@@ -1,0 +1,48 @@
+import os
+import fitz  # PyMuPDF
+import pdfplumber
+import json
+
+# === Configuration === #
+PDF_FILE = "IMO Grade 1 - 1-2.pdf"  # Replace with your PDF path
+OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# === Step 1: Extract text using pdfplumber === #
+text_per_page = []
+with pdfplumber.open(PDF_FILE) as pdf:
+    for page in pdf.pages:
+        text = page.extract_text()
+        text_per_page.append(text if text else "")
+
+# === Step 2: Extract images using PyMuPDF === #
+doc = fitz.open(PDF_FILE)
+extracted_data = []
+
+for page_number in range(len(doc)):
+    page = doc.load_page(page_number)
+    image_paths = []
+
+    for img_index, img in enumerate(page.get_images(full=True)):
+        xref = img[0]
+        base_image = doc.extract_image(xref)
+        image_bytes = base_image["image"]
+        image_ext = base_image["ext"]
+        
+        image_path = f"{OUTPUT_DIR}/page{page_number+1}_image{img_index+1}.{image_ext}"
+        with open(image_path, "wb") as f:
+            f.write(image_bytes)
+        image_paths.append(image_path)
+
+    extracted_data.append({
+        "page": page_number + 1,
+        "text": text_per_page[page_number],
+        "images": image_paths
+    })
+
+# === Step 3: Save structured data to JSON === #
+json_path = os.path.join(OUTPUT_DIR, "content.json")
+with open(json_path, "w", encoding="utf-8") as f:
+    json.dump(extracted_data, f, indent=4)
+
+print("✅ Extraction complete. Check the 'output/' folder.")
